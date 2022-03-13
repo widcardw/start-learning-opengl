@@ -27,15 +27,15 @@
             "windows": {
                 "MIMode": "gdb",
                 "miDebuggerPath": "gdb.exe", // 调试工具
-                "program": "${workspaceFolder}/output/main.exe"  // 需要调试的程序的路径
+                "program": "${workspaceFolder}/output/main.exe" // 需要调试的程序的路径
             },
             "setupCommands": [
                 {
-                  "description": "为 gdb 启用整齐打印",
-                  "text": "-enable-pretty-printing",
-                  "ignoreFailures": true
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
                 }
-              ],
+            ],
             "preLaunchTask": "build" // 调试前调用的task,名称对应 task 中的 label
         }
     ]
