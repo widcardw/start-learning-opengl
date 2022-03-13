@@ -21,7 +21,7 @@
             },
             "osx": {
                 "command": "bash",
-                "args": ["-c", "make"]
+                "args": ["-c", "make dir=ch_2_light/"]
             }
         },
         {
