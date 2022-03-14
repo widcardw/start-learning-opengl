@@ -12,6 +12,7 @@
 
 #include <geometry/BoxGeometry.h>
 #include <geometry/SphereGeometry.h>
+#include <geometry/PlaneGeometry.h>
 #include <tool/mycamera.h>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
@@ -19,8 +20,8 @@ void processInput(GLFWwindow *window);
 void mouse_move_callback(GLFWwindow *window, double xposIn, double yposIn);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
-const int WIDTH = 800;
-const int HEIGHT = 600;
+const int WIDTH = 1920;
+const int HEIGHT = 1080;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
@@ -82,11 +83,14 @@ int main(int argc, char *argv[])
     Shader lightObjectShader("./shader/light_object_vertex.glsl", "./shader/light_object_fragment.glsl");
     SphereGeometry sphereGeometry(0.1f, 20, 20);
 
+    Shader groundShader("./shader/ground_vertex.glsl", "./shader/ground_fragment.glsl");
+    PlaneGeometry groundGeometry(20.0f, 20.0f);
+
     // 生成纹理
-    unsigned int texture;
-    glGenTextures(1, &texture);
+    unsigned int texture1, texture2;
+    glGenTextures(1, &texture1);
     // 绑定纹理
-    glBindTexture(GL_TEXTURE_2D, texture);
+    glBindTexture(GL_TEXTURE_2D, texture1);
 
     // 设置环绕和过滤方式
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -108,12 +112,35 @@ int main(int argc, char *argv[])
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 
+    glGenTextures(1, &texture2);
+    glBindTexture(GL_TEXTURE_2D, texture2);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    data = stbi_load("./static/texture/brick_diffuse.jpg", &imgWidth, &imgHeight, &nrChannels, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imgWidth, imgHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+
     stbi_image_free(data);
+
     glm::vec3 lightPosition(1.0, 1.5, 0.0);
+    glm::vec3 lightColor(1.0, 1.0, 1.0);
 
     ourShader.use();
-    ourShader.setVec3("lightColor", glm::vec3(1.0, 0.7, 0.5));
+    ourShader.setVec3("lightColor", lightColor);
     ourShader.setFloat("ambientStrength", 0.1);
+    ourShader.setInt("texture1", 0);
+
+    groundShader.use();
+    groundShader.setVec3("lightColor", lightColor);
+    groundShader.setFloat("ambientStrength", 0.3);
+    groundShader.setInt("texture2", 1);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -142,7 +169,9 @@ int main(int argc, char *argv[])
         ourShader.setVec3("viewPos", camera.Position);
 
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture2);
         glBindVertexArray(boxGeometry.VAO);
 
         glm::mat4 model = glm::mat4(1.0f);
@@ -159,6 +188,20 @@ int main(int argc, char *argv[])
         lightObjectShader.setMat4("projection", projection);
         glBindVertexArray(sphereGeometry.VAO);
         glDrawElements(GL_TRIANGLES, sphereGeometry.indices.size(), GL_UNSIGNED_INT, 0);
+
+        groundShader.use();
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, -2.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        // model = glm::scale(model, glm::vec3(10.0f));
+        groundShader.setMat4("model", model);
+        groundShader.setMat4("view", view);
+        groundShader.setMat4("projection", projection);
+        groundShader.setVec3("viewPos", camera.Position);
+        groundShader.setVec3("lightPos", lightPos);
+        
+        glBindVertexArray(groundGeometry.VAO);
+        glDrawElements(GL_TRIANGLES, groundGeometry.indices.size(), GL_UNSIGNED_INT, 0);
 
         view = glm::mat4(1.0f);
         projection = glm::mat4(1.0f);

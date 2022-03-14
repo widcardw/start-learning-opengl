@@ -20,8 +20,11 @@
                 "args": ["-c", "make"]
             },
             "osx": {
-                "command": "bash",
-                "args": ["-c", "make dir=ch_2_light/"]
+                "command": "zsh",
+                "args": [
+                    "-c", 
+                    "make dir=ch_2_light/"
+                ]
             }
         },
         {
@@ -37,7 +40,7 @@
             },
             "osx": {
                 "command": "bash",
-                "args": ["-c", "'make run'"]
+                "args": ["-c", "'make run dir=ch_2_light/'"]
             }
         },
         {
