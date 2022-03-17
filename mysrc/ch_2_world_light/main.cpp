@@ -86,6 +86,9 @@ int main(int argc, char *argv[])
     Shader groundShader("./shader/ground_vertex.glsl", "./shader/ground_fragment.glsl");
     PlaneGeometry groundGeometry(20.0f, 20.0f);
 
+    Shader ballShader("./shader/ball_vertex.glsl", "./shader/ball_fragment.glsl");
+    SphereGeometry ballGeomotry(1.0, 20.0, 20.0);
+
     // 生成纹理
     unsigned int texture1, texture2;
     glGenTextures(1, &texture1);
@@ -141,6 +144,10 @@ int main(int argc, char *argv[])
     groundShader.setVec3("lightColor", lightColor);
     groundShader.setFloat("ambientStrength", 0.3);
     groundShader.setInt("texture2", 1);
+
+    ballShader.use();
+    ballShader.setVec3("lightColor", lightColor);
+    ballShader.setFloat("ambientStrength", 0.2);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -199,9 +206,20 @@ int main(int argc, char *argv[])
         groundShader.setMat4("projection", projection);
         groundShader.setVec3("viewPos", camera.Position);
         groundShader.setVec3("lightPos", lightPos);
-        
         glBindVertexArray(groundGeometry.VAO);
         glDrawElements(GL_TRIANGLES, groundGeometry.indices.size(), GL_UNSIGNED_INT, 0);
+
+        ballShader.use();
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(3.0f, 0.0f, 3.0f));
+        ballShader.setMat4("model", model);
+        ballShader.setMat4("view", view);
+        ballShader.setMat4("projection", projection);
+        ballShader.setVec3("viewPos", camera.Position);
+        ballShader.setVec3("lightPos", lightPos);
+        ballShader.setFloat("utime", currentFrame);
+        glBindVertexArray(ballGeomotry.VAO);
+        glDrawElements(GL_TRIANGLES, ballGeomotry.indices.size(), GL_UNSIGNED_INT, 0);
 
         view = glm::mat4(1.0f);
         projection = glm::mat4(1.0f);

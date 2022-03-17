@@ -12,12 +12,11 @@ uniform vec3 viewPos;  // 相机位置
 
 
 // 采样
-uniform sampler2D texture2;
+uniform sampler2D texture1;
 
 void main() {
 
-    vec4 objectColor = texture(texture2, TexCoord);
-    // vec4 objectColor = vec4(1.0, 1.0, 1.0, 1.0);
+    vec4 objectColor = texture(texture1, TexCoord);
 
     vec3 ambient = ambientStrength * lightColor;
 
@@ -33,11 +32,10 @@ void main() {
     vec3 viewDir = normalize(viewPos - FragPos);  // 视线方向
     vec3 reflectDir = reflect(-lightDir, norm);  // 反射光方向
 
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 1);  // 反射光强度
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);  // 反射光强度
     vec3 specular = specularStrength * spec * lightColor;  // 反射光
 
     vec3 result = (ambient + diffuse + specular) * vec3(objectColor);
-    // vec3 result = vec3(objectColor);
-    // FragColor = texture(texture2, TexCoord);
+    // FragColor = texture(texture1, TexCoord);
     FragColor = vec4(result, 1.0);
 }

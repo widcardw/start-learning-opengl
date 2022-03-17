@@ -3,10 +3,16 @@ out vec4 FragColor;
 in vec3 ourColor;
 in vec2 TexCoord;
 
-// 采样
-uniform sampler2D texture1;
+float circleShape(vec2 position, float radius) {
+    return 1- step(radius, length(position - 0.5));
+}
+
+float lightShape(vec2 position) {
+    return 0.1 / length(position - 0.5) - 0.3;
+}
 
 void main() {
-    // FragColor = texture(texture1, TexCoord);
-    FragColor = vec4(ourColor, 1.0f);
+    float alpha = 0.0;
+    alpha += lightShape(gl_PointCoord);
+    FragColor = vec4(ourColor, alpha);
 }

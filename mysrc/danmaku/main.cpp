@@ -16,8 +16,8 @@
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 
-const int WIDTH = 600;
-const int HEIGHT = 600;
+const int WIDTH = 800;
+const int HEIGHT = 800;
 
 std::string Shader::dirName;
 
@@ -83,7 +83,7 @@ int main(int argc, char *argv[])
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
     glEnableVertexAttribArray(0);
 
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+    ImVec4 clear_color = ImVec4(0.0, 0.0, 0.0, 1.00f);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -118,6 +118,7 @@ int main(int argc, char *argv[])
 
         float timeValue = glfwGetTime();
         ourShader.use();
+        ourShader.setFloat("utime", utime);
         glBindVertexArray(VAO);
         glDrawArrays(GL_POINTS, 0, 3);
 
@@ -125,8 +126,9 @@ int main(int argc, char *argv[])
         {
             glm::mat4 model = glm::mat4(1.0f);
 
-            float angle = (float)(i + 1) * 360.0f / (float)verticesNum * timeValue / 10;
-            float distance = sqrt(1.0f / (float)(i + 1)) * 2;
+            float angle = (float)(i + 1) * glm::radians(360.0f) / (float)verticesNum * timeValue ;
+            // float distance = sqrt(1.0f / (float)(i + 1)) * 2;
+            float distance = pow((float)(verticesNum - i) / verticesNum, 2.0) * 2;
 
             glm::vec3 position = glm::vec3(
                 cos(angle) * distance,
