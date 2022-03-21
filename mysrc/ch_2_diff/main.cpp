@@ -86,11 +86,8 @@ int main(int argc, char *argv[])
     Shader groundShader("./shader/ground_vertex.glsl", "./shader/ground_fragment.glsl");
     PlaneGeometry groundGeometry(20.0f, 20.0f);
 
-    Shader ballShader("./shader/ball_vertex.glsl", "./shader/ball_fragment.glsl");
-    SphereGeometry ballGeomotry(1.0, 20.0, 20.0);
-
     // 生成纹理
-    unsigned int texture1, texture2;
+    unsigned int texture1, texture2, specularMap;
     glGenTextures(1, &texture1);
     // 绑定纹理
     glBindTexture(GL_TEXTURE_2D, texture1);
@@ -106,15 +103,33 @@ int main(int argc, char *argv[])
 
     // 加载图片
     int imgWidth, imgHeight, nrChannels;
-    unsigned char *data = stbi_load("./static/texture/container.jpg", &imgWidth, &imgHeight, &nrChannels, 0);
+    unsigned char *data = stbi_load("./static/texture/container2.png", &imgWidth, &imgHeight, &nrChannels, 0);
 
     if (data)
     {
         // 生成图片
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imgWidth, imgHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 
+    // 镜面高光
+    glGenTextures(1, &specularMap);
+    glBindTexture(GL_TEXTURE_2D, specularMap);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    data = stbi_load("./static/texture/container2_specular.png", &imgWidth, &imgHeight, &nrChannels, 0);
+    if (data)
+    {
+        // 生成图片
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, imgWidth, imgHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+
+    // 地面
     glGenTextures(1, &texture2);
     glBindTexture(GL_TEXTURE_2D, texture2);
 
@@ -131,23 +146,22 @@ int main(int argc, char *argv[])
     }
 
     stbi_image_free(data);
-
+    
     glm::vec3 lightPosition(1.0, 1.5, 0.0);
     glm::vec3 lightColor(1.0, 1.0, 1.0);
 
     ourShader.use();
-    ourShader.setVec3("lightColor", lightColor);
-    ourShader.setFloat("ambientStrength", 0.1);
-    ourShader.setInt("texture1", 0);
+    ourShader.setInt("material.diffuse", 0);
+    ourShader.setInt("material.specular", 1);
+    ourShader.setFloat("material.shininess", 32.0f);
+    ourShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+    ourShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // 将光照调暗了一些以搭配场景
+    ourShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
     groundShader.use();
     groundShader.setVec3("lightColor", lightColor);
     groundShader.setFloat("ambientStrength", 0.3);
-    groundShader.setInt("texture2", 1);
-
-    ballShader.use();
-    ballShader.setVec3("lightColor", lightColor);
-    ballShader.setFloat("ambientStrength", 0.2);
+    groundShader.setInt("texture2", 2);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -162,8 +176,9 @@ int main(int argc, char *argv[])
 
         ourShader.use();
 
-        glm::vec3 lightPos = glm::vec3(lightPosition.x + 3 * sin(currentFrame), lightPosition.y, lightPosition.z);
-        ourShader.setVec3("lightPos", lightPos);
+        glm::vec3 lightPos = glm::vec3(lightPosition);
+        // glm::vec3 lightPos = glm::vec3(lightPosition.x + 3 * sin(currentFrame), lightPosition.y, lightPosition.z);
+        ourShader.setVec3("light.position", lightPos);
 
         glm::mat4 view = glm::mat4(1.0f);
         view = camera.GetViewMatrix();
@@ -178,6 +193,8 @@ int main(int argc, char *argv[])
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specularMap);
+        glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, texture2);
         glBindVertexArray(boxGeometry.VAO);
 
@@ -206,20 +223,9 @@ int main(int argc, char *argv[])
         groundShader.setMat4("projection", projection);
         groundShader.setVec3("viewPos", camera.Position);
         groundShader.setVec3("lightPos", lightPos);
+
         glBindVertexArray(groundGeometry.VAO);
         glDrawElements(GL_TRIANGLES, groundGeometry.indices.size(), GL_UNSIGNED_INT, 0);
-
-        ballShader.use();
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(3.0f, 0.0f, 3.0f));
-        ballShader.setMat4("model", model);
-        ballShader.setMat4("view", view);
-        ballShader.setMat4("projection", projection);
-        ballShader.setVec3("viewPos", camera.Position);
-        ballShader.setVec3("lightPos", lightPos);
-        ballShader.setFloat("utime", currentFrame);
-        glBindVertexArray(ballGeomotry.VAO);
-        glDrawElements(GL_TRIANGLES, ballGeomotry.indices.size(), GL_UNSIGNED_INT, 0);
 
         view = glm::mat4(1.0f);
         projection = glm::mat4(1.0f);
@@ -229,7 +235,6 @@ int main(int argc, char *argv[])
 
     boxGeometry.dispose();
     sphereGeometry.dispose();
-    groundGeometry.dispose();
     glfwTerminate();
     return 0;
 }

@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
     SphereGeometry ballGeomotry(1.0, 20.0, 20.0);
 
     // 生成纹理
-    unsigned int texture1, texture2;
+    unsigned int texture1, texture2, texture3;
     glGenTextures(1, &texture1);
     // 绑定纹理
     glBindTexture(GL_TEXTURE_2D, texture1);
@@ -130,14 +130,35 @@ int main(int argc, char *argv[])
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 
+    glGenTextures(1, &texture3);
+    glBindTexture(GL_TEXTURE_2D, texture3);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    data = stbi_load("./static/texture/world.jpg", &imgWidth, &imgHeight, &nrChannels, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, imgWidth, imgHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+
     stbi_image_free(data);
 
     glm::vec3 lightPosition(1.0, 1.5, 0.0);
     glm::vec3 lightColor(1.0, 1.0, 1.0);
 
     ourShader.use();
-    ourShader.setVec3("lightColor", lightColor);
-    ourShader.setFloat("ambientStrength", 0.1);
+    // ourShader.setVec3("lightColor", lightColor);
+    ourShader.setVec3("material.ambient", 1.0f, 1.0f, 1.0f);
+    ourShader.setVec3("material.diffuse", 0.5f, 0.5f, 0.5f);
+    ourShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+    ourShader.setFloat("material.shininess", 32.0f);
+    ourShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+    ourShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // 将光照调暗了一些以搭配场景
+    ourShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
     ourShader.setInt("texture1", 0);
 
     groundShader.use();
@@ -148,6 +169,7 @@ int main(int argc, char *argv[])
     ballShader.use();
     ballShader.setVec3("lightColor", lightColor);
     ballShader.setFloat("ambientStrength", 0.2);
+    ballShader.setInt("texture1", 2);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -163,7 +185,7 @@ int main(int argc, char *argv[])
         ourShader.use();
 
         glm::vec3 lightPos = glm::vec3(lightPosition.x + 3 * sin(currentFrame), lightPosition.y, lightPosition.z);
-        ourShader.setVec3("lightPos", lightPos);
+        ourShader.setVec3("light.position", lightPos);
 
         glm::mat4 view = glm::mat4(1.0f);
         view = camera.GetViewMatrix();
@@ -179,6 +201,8 @@ int main(int argc, char *argv[])
         glBindTexture(GL_TEXTURE_2D, texture1);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, texture3);
         glBindVertexArray(boxGeometry.VAO);
 
         glm::mat4 model = glm::mat4(1.0f);
@@ -217,7 +241,7 @@ int main(int argc, char *argv[])
         ballShader.setMat4("projection", projection);
         ballShader.setVec3("viewPos", camera.Position);
         ballShader.setVec3("lightPos", lightPos);
-        ballShader.setFloat("utime", currentFrame);
+        // ballShader.setFloat("utime", currentFrame);
         glBindVertexArray(ballGeomotry.VAO);
         glDrawElements(GL_TRIANGLES, ballGeomotry.indices.size(), GL_UNSIGNED_INT, 0);
 
