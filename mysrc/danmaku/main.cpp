@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
 
-    glViewport(0, 0, WIDTH, HEIGHT);
+    glViewport(0, 0, 2*WIDTH, 2*HEIGHT);
     glEnable(GL_PROGRAM_POINT_SIZE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 
             glm::vec3 position = glm::vec3(
                 cos(angle) * distance,
-                sin(angle) * distance, 0.0f);
+                sin(angle) * distance, (float) ((i + 1) % verticesNum) / (float) verticesNum);
 
             model = glm::translate(model, position);
             ourShader.setMat4("model", model);

@@ -4,8 +4,6 @@ in vec2 TexCoord;
 in vec3 Normal;
 in vec3 FragPos;
 
-uniform vec3 lightColor;
-uniform vec3 lightPos;
 uniform float ambientStrength;
 
 uniform vec3 viewPos;  // 相机位置
@@ -50,7 +48,7 @@ void main() {
     vec3 viewDir = normalize(viewPos - FragPos);  // 视线方向
     vec3 reflectDir = reflect(-lightDir, norm);  // 反射光方向
 
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 1.0);  // 反射光强度
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 1);  // 反射光强度
     vec3 specular = spec * light.specular;  // 反射光
 
     ambient *= attenuation;

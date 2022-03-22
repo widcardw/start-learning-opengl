@@ -62,7 +62,7 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    glViewport(0, 0, 2*WIDTH, 2*HEIGHT);
+    glViewport(0, 0, 2 * WIDTH, 2 * HEIGHT);
     glEnable(GL_PROGRAM_POINT_SIZE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -145,6 +145,30 @@ int main(int argc, char *argv[])
         glGenerateMipmap(GL_TEXTURE_2D);
     }
 
+    // 深度贴图帧缓冲对象
+    GLuint depthMapFBO;
+    glGenFramebuffers(1, &depthMapFBO);
+    // 创建一个 2D 纹理，提供给深度缓冲使用
+    const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
+
+    GLuint depthMap;
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    // 指定纹理格式为 GL_DEPTH_COMPONENT
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT,
+                 SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    // 生成的深度纹理作为帧缓冲的深度缓冲
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // 释放图片数据
     stbi_image_free(data);
 
     glm::vec3 lightPosition(1.0, -0.5, 0.0);
@@ -241,6 +265,7 @@ int main(int argc, char *argv[])
 
     boxGeometry.dispose();
     sphereGeometry.dispose();
+    glDeleteBuffers(1, &depthMapFBO);
     glfwTerminate();
     return 0;
 }

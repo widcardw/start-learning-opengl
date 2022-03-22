@@ -13,7 +13,7 @@ uniform float utime;
 
 void main() {
     gl_Position = vec4(projection * view * model * vec4(aPos, 1.0));
-    gl_PointSize = 40.0;
+    gl_PointSize = 40.0 * (length(gl_Position.xy * 0.5) + 0.1);
     ourColor = abs(vec3(sin(gl_Position.x + utime), sin(gl_Position.y), cos(gl_Position.x - utime)));
     // ourColor = vec3(1.0);
     TexCoord = aTexCoord;
