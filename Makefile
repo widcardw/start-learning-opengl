@@ -64,7 +64,7 @@ SOURCES		+= include/imgui/imgui_draw.cpp
 # define the C object files 
 OBJECTS		:= $(SOURCES:.cpp=.o)
 
-Libraries	:= -lglfw.3 -lglad
+Libraries	:= -lglfw.3 -lglad -lassimp
 
 #
 # The following part of the makefile is generic; it can be used to 
