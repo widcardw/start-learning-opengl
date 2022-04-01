@@ -14,6 +14,10 @@
 #include <geometry/SphereGeometry.h>
 #include <tool/mycamera.h>
 
+#include <tool/mesh.h>
+#include <tool/model.h>
+
+
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 void processInput(GLFWwindow *window);
 void mouse_move_callback(GLFWwindow *window, double xposIn, double yposIn);
@@ -115,6 +119,8 @@ int main(int argc, char *argv[])
     ourShader.setVec3("lightColor", glm::vec3(1.0, 0.7, 0.5));
     ourShader.setFloat("ambientStrength", 0.1);
 
+    Model ourModel("./static/model/cerberus/Cerberus.obj");
+
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
@@ -149,7 +155,9 @@ int main(int argc, char *argv[])
         glm::qua<float> qu = glm::qua<float>(glm::vec3(currentFrame, currentFrame, currentFrame));
         model = glm::mat4_cast(qu);
         ourShader.setMat4("model", model);
-        glDrawElements(GL_TRIANGLES, boxGeometry.indices.size(), GL_UNSIGNED_INT, 0);
+        // glDrawElements(GL_TRIANGLES, boxGeometry.indices.size(), GL_UNSIGNED_INT, 0);
+
+        ourModel.Draw(ourShader);
 
         lightObjectShader.use();
         model = glm::mat4(1.0f);
